@@ -1,5 +1,7 @@
 import { GetStaticProps } from "next";
 import Image from "next/image";
+import Link from "next/link";
+
 import { format, parseISO } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 import api from "../services/api";
@@ -43,7 +45,9 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
                 />
 
                 <div className={styles.episodeDetails}>
-                  <a href="">{latestEpisode.title}</a>
+                  <Link href={`/episodes/${latestEpisode.id}`}>
+                    <a>{latestEpisode.title}</a>
+                  </Link>
                   <p>{latestEpisode.members}</p>
                   <span>{latestEpisode.publishedAt}</span>
                   <span>{latestEpisode.durationAsString}</span>
@@ -63,12 +67,14 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
 
         <table cellSpacing={0}>
           <thead>
-            <th></th>
-            <th>Podcast</th>
-            <th>Integrantes</th>
-            <th>Data</th>
-            <th>Duração</th>
-            <th></th>
+            <tr>
+              <th></th>
+              <th>Podcast</th>
+              <th>Integrantes</th>
+              <th>Data</th>
+              <th>Duração</th>
+              <th></th>
+            </tr>
           </thead>
           <tbody>
             {allEpisodes.map((allEpisode) => {
@@ -84,7 +90,9 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
                     />
                   </td>
                   <td>
-                    <a href="">{allEpisode.title}</a>
+                    <Link href={`/episodes/${allEpisode.id}`}>
+                      <a>{allEpisode.title}</a>
+                    </Link>
                   </td>
                   <td>{allEpisode.members}</td>
                   <td style={{ width: 100 }}>{allEpisode.publishedAt}</td>
@@ -127,7 +135,6 @@ export const getStaticProps: GetStaticProps = async () => {
       durationAsString: convertDurationToTimeString(
         Number(episode.file.duration)
       ),
-      description: episode.description,
       url: episode.file.url,
     };
   });
