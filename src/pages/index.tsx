@@ -38,6 +38,7 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
                 height={192}
                 src={latestEpisode.thumbnail}
                 alt={latestEpisode.title}
+                objectFit="cover"
               />
 
               <div className={styles.episodeDetails}>
