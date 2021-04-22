@@ -76,12 +76,13 @@
             padding-left: 0.5rem;
 
             &::before {
+              content: "";
+
               position: absolute;
               top: 50%;
               left: 0;
 
               transform: translate(-50%, -50%);
-              content: "";
               width: 4px;
               height: 4px;
               border-radius: 2px;
