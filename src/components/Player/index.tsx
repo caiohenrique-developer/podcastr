@@ -1,14 +1,32 @@
 import Image from "next/image";
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 import Slyder from "rc-slider";
 import "rc-slider/assets/index.css";
 import { PlayerContext } from "../../contexts/PlayerContext";
 import styles from "./styles.module.scss";
 
 export function Player() {
-  const { episodeList, currentEpisodeIndex } = useContext(PlayerContext);
+  const {
+    episodeList,
+    currentEpisodeIndex,
+    isPlaying,
+    togglePlay,
+    playState,
+  } = useContext(PlayerContext);
 
   const playingEpisode = episodeList[currentEpisodeIndex];
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      return;
+    } else if (isPlaying) {
+      audioRef.current.play();
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying]);
 
   return (
     <div className={styles.playerContainer}>
@@ -56,6 +74,19 @@ export function Player() {
           <span>00:00</span>
         </div>
 
+        {playingEpisode && (
+          // <!-- Reprodução simples de áudio -->
+          <audio
+            src={playingEpisode.url}
+            ref={audioRef}
+            autoPlay
+            onPlay={() => playState(true)}
+            onPause={() => playState(false)}
+          >
+            O seu navegador não suporta o elemento <code>audio</code>.
+          </audio>
+        )}
+
         <div className={styles.buttons}>
           <button type="button" disabled={!playingEpisode}>
             <img src="/shuffle.svg" alt="Embaralhar" />
@@ -67,8 +98,13 @@ export function Player() {
             type="button"
             className={styles.playButton}
             disabled={!playingEpisode}
+            onClick={togglePlay}
           >
-            <img src="/play.svg" alt="Tocar" />
+            {isPlaying ? (
+              <img src="/pause.svg" alt="Pausar" />
+            ) : (
+              <img src="/play.svg" alt="Tocar" />
+            )}
           </button>
           <button type="button" disabled={!playingEpisode}>
             <img src="/play-next.svg" alt="Tocar próxima" />
