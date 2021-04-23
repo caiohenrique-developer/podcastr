@@ -3,6 +3,19 @@
   height: calc(100vh - 6.5rem);
   overflow-y: scroll;
 
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: darken;
+    outline: 1px solid slategrey;
+  }
+
   h2 {
     margin-top: 3rem;
     margin-bottom: 1.5rem;
