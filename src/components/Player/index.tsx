@@ -1,18 +1,30 @@
 import Image from "next/image";
-import { useContext, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Slyder from "rc-slider";
 import "rc-slider/assets/index.css";
-import { PlayerContext } from "../../contexts/PlayerContext";
+import { usePlayer } from "../../contexts/PlayerContext";
 import styles from "./styles.module.scss";
+import { convertDurationToTimeString } from "../../utils/convertDurationToTimeString";
 
 export function Player() {
+  const [progress, setProgress] = useState(0);
+
   const {
     episodeList,
     currentEpisodeIndex,
     isPlaying,
+    isLooping,
+    isShuffling,
+    hasNext,
+    hasPrevious,
     togglePlay,
+    toggleLoop,
+    toggleShuffle,
     playState,
-  } = useContext(PlayerContext);
+    clearPlayerState,
+    playNext,
+    playPrevious,
+  } = usePlayer();
 
   const playingEpisode = episodeList[currentEpisodeIndex];
 
@@ -27,6 +39,28 @@ export function Player() {
       audioRef.current.pause();
     }
   }, [isPlaying]);
+
+  function setupProgressListener() {
+    audioRef.current.currentTime = 0;
+
+    audioRef.current.addEventListener("timeupdate", () =>
+      setProgress(Math.floor(audioRef.current.currentTime))
+    );
+  }
+
+  function handleSeek(amount: number) {
+    audioRef.current.currentTime = amount;
+
+    setProgress(amount);
+  }
+
+  function handleEpisodeEnded() {
+    if (playNext) {
+      playNext();
+    } else {
+      clearPlayerState();
+    }
+  }
 
   return (
     <div className={styles.playerContainer}>
@@ -53,12 +87,15 @@ export function Player() {
         </div>
       )}
 
-      <footer className={!playingEpisode && styles.empty}>
+      <footer className={!playingEpisode ? styles.empty : styles.active}>
         <div className={styles.progress}>
-          <span>00:00</span>
+          <span>{convertDurationToTimeString(progress)}</span>
           <div className={styles.slider}>
             {playingEpisode ? (
               <Slyder
+                max={playingEpisode.duration}
+                value={progress}
+                onChange={handleSeek}
                 trackStyle={{ backgroundColor: "#04d361" }}
                 railStyle={{ backgroundColor: "#9f75ff" }}
                 handleStyle={{
@@ -71,7 +108,9 @@ export function Player() {
               <div className={styles.emptySlider} />
             )}
           </div>
-          <span>00:00</span>
+          <span>
+            {convertDurationToTimeString(playingEpisode?.duration ?? 0)}
+          </span>
         </div>
 
         {playingEpisode && (
@@ -80,18 +119,30 @@ export function Player() {
             src={playingEpisode.url}
             ref={audioRef}
             autoPlay
+            loop={isLooping}
             onPlay={() => playState(true)}
             onPause={() => playState(false)}
+            onLoadedMetadata={setupProgressListener}
+            onEnded={handleEpisodeEnded}
           >
             O seu navegador não suporta o elemento <code>audio</code>.
           </audio>
         )}
 
         <div className={styles.buttons}>
-          <button type="button" disabled={!playingEpisode}>
+          <button
+            type="button"
+            disabled={!playingEpisode || episodeList.length === 1}
+            onClick={toggleShuffle}
+            className={isShuffling && styles.isActive}
+          >
             <img src="/shuffle.svg" alt="Embaralhar" />
           </button>
-          <button type="button" disabled={!playingEpisode}>
+          <button
+            type="button"
+            disabled={!playingEpisode || !hasPrevious}
+            onClick={playPrevious}
+          >
             <img src="/play-previous.svg" alt="Tocar anterior" />
           </button>
           <button
@@ -106,10 +157,19 @@ export function Player() {
               <img src="/play.svg" alt="Tocar" />
             )}
           </button>
-          <button type="button" disabled={!playingEpisode}>
+          <button
+            type="button"
+            disabled={!playingEpisode || !hasNext}
+            onClick={playNext}
+          >
             <img src="/play-next.svg" alt="Tocar próxima" />
           </button>
-          <button type="button" disabled={!playingEpisode}>
+          <button
+            type="button"
+            disabled={!playingEpisode}
+            onClick={toggleLoop}
+            className={isLooping && styles.isActive}
+          >
             <img src="/repeat.svg" alt="Repetir" />
           </button>
         </div>
